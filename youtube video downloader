@@ -7,9 +7,6 @@ from threading import *
 from PIL import Image,ImageTk
 import webbrowser
 import pygame
-import io
-sys.stdout = io.TextIOWrapper(sys.stdout.detach(), encoding = 'utf-8')
-sys.stdout = io.TextIOWrapper(sys.stderr.detach(), encoding = 'utf-8')
 
 from pygame import mixer
 
