@@ -1,0 +1,133 @@
+from pytube import YouTube
+from tkinter.filedialog import *
+from tkinter.messagebox import *
+from tkinter import *
+from speedtest import Speedtest
+from threading import *
+from PIL import Image,ImageTk
+import webbrowser
+import pygame
+import io
+sys.stdout = io.TextIOWrapper(sys.stdout.detach(), encoding = 'utf-8')
+sys.stdout = io.TextIOWrapper(sys.stderr.detach(), encoding = 'utf-8')
+
+from pygame import mixer
+
+pygame.mixer.init()
+pygame.init()
+def music_start():
+    pygame.mixer.music.load("./res/s.mp3")
+    pygame.mixer.music.play(-1)
+music_start()
+
+font = ('verdana', 20)
+file_size = 0
+
+
+# oncomplete callback function
+def completeDownload(stream=None, file_path=None):
+    print("download completed")
+    showinfo("Message", "File has been downloaded...")
+    downloadBtn['text'] = "Download Video"
+    downloadBtn['state'] = "active"
+    urlField.delete(0, END)
+
+
+# onprogress callbackfunction
+def progressDownload(stream=None, chunk=None, bytes_remaining=None):
+    percent = (100 * ((file_size - bytes_remaining) / file_size))
+    downloadBtn['text'] = "{:00.0f}% downloaded ".format(percent)
+
+
+# download function
+def startDownload(url):
+    global file_size
+    path_to_save = askdirectory()
+    if path_to_save is None:
+        return
+
+    try:
+        yt = YouTube(url)
+        st = yt.streams.first()
+
+        yt.register_on_complete_callback(completeDownload)
+        yt.register_on_progress_callback(progressDownload)
+
+        file_size = st.filesize
+        st.download(output_path=path_to_save)
+
+    except Exception as e:
+        print(e)
+        print("something went wrong")
+
+
+def btnClicked():
+    try:
+        downloadBtn['text'] = "Please wait..."
+        downloadBtn['state'] = 'disabled'
+        url = urlField.get()
+        if url == '':
+            return
+        print(url)
+        thread = Thread(target=startDownload, args=(url,))
+        thread.start()
+
+    except Exception as e:
+        print(e)
+
+
+# gui coding
+
+root = Tk()
+root.title("My Youtube downloader")
+root.iconbitmap("./res/op.ico")
+root.geometry("500x740")
+root.resizable(0,0)
+
+
+
+
+# main icon section
+head=Label(root,text="MPA VIDEO DOWNLOADER",font=("arial",25,"bold"),fg="white",bg="black",borderwidth=10,relief="raised",padx=40)
+head.pack()
+root.configure(background="black")
+last=Label(root,text="© This App Is Made By Tabish,Pratham,Abhishek",bg="black",fg="white",font=("arial",16,"bold"))
+last.pack(side='bottom',pady=5)
+
+file = Image.open("./res/download.png")
+file=ImageTk.PhotoImage(file)
+headingIcon = Label(root, image=file)
+headingIcon.pack(side=TOP, pady=8)
+# making url field
+urlField = Entry(root, font=font, justify=CENTER)
+urlField.pack(side=TOP, fill=X, padx=10,pady=10)
+urlField.focus()
+# download btn
+downloadBtn = Button(root, text="Download Video", font=font,bd=10, relief='ridge', command=btnClicked)
+downloadBtn.pack(side=TOP, pady=20)
+l=Label(root,text="CLICK BELOW YT BUTTON WILL BE REDIRECTED TO YOUTUBE",font=("arial",12,"italic"),fg="white",bg="black")
+l.pack()
+def utube():
+    webbrowser.open("www.youtube.com")
+my=Image.open("./res/tr.png")
+my=ImageTk.PhotoImage(my)
+google=Button(root,image=my,command=utube,bd=5)
+google.pack(pady=10)
+def update_text():
+    speed_test = Speedtest()
+    download = speed_test.download()
+    upload = speed_test.upload()
+    download_speed = round(download / (10**6), 2)
+    upload_speed = round(upload / (10**6), 2)
+    down_label.config(text= "Download Speed - " + str(download_speed) + "Mbps")
+    up_label.config(text= "Upload Speed - " + str(upload_speed) + "Mbps")
+button = Button(root,text="CHECK YOUR NET SPEED",font=("arial",10,"bold"), width=30, command=update_text)
+button.pack(side='bottom',pady=1)
+down_label = Label(root, text="")
+down_label.pack()
+up_label = Label(root, text="")
+up_label.pack()
+
+
+
+root.mainloop()
